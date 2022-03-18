@@ -28,7 +28,34 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
+defineTest(copyToDestDir) {
+    sources = $$1
+    dest = $$2
+
+    for(FILE, sources) {
+        DDIR = $$dest
+
+        # Replace slashes in paths with backslashes for Windows
+        win32:FILE ~= s,/,\\,g
+        win32:DDIR ~= s,/,\\,g
+
+        QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$FILE) $$quote($$DDIR) $$escape_expand(\\n\\t)
+    }
+
+    export(QMAKE_POST_LINK)
+}
+
 unix {
     QMAKE_LIBDIR_FLAGS += -Wl,-rpath $$PWD/lib
     LIBS += -L$$PWD/lib/ -lPlayerOneCamera
+}
+win32 {
+    LIBS += $$PWD/lib/PlayerOneCamera.lib
+
+    CONFIG(debug, debug|release) {
+        OUTDIR = $$OUT_PWD/debug
+    } else {
+        OUTDIR = $$OUT_PWD/release
+    }
+    copyToDestDir($$PWD/lib/PlayerOneCamera.dll, $$OUTDIR)
 }

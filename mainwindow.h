@@ -20,6 +20,9 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+signals:
+    void done();
+
 public slots:
     void on_pushButtonConnect_clicked();
     void on_pushButtonDisconnect_clicked();
@@ -27,6 +30,7 @@ public slots:
     void on_pushButtonAbortExposure_clicked();
     void camera_imageReady(int nWidth, int nHeight, const std::vector<unsigned char> &image);
     void camera_aborted();
+    void exposure_done();
 
 private:
     Ui::MainWindow *ui;

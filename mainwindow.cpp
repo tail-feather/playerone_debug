@@ -18,6 +18,8 @@ MainWindow::MainWindow(QWidget *parent)
     , bWaiting(false)
 {
     ui->setupUi(this);
+
+    connect(this, &MainWindow::done, this, &MainWindow::exposure_done);
 }
 
 MainWindow::~MainWindow()
@@ -68,9 +70,9 @@ void MainWindow::on_pushButtonExposure_clicked()
         exposureThread.join();
     }
 
+    ui->pushButtonExposure->setEnabled(false);
     std::thread thread([=](){
         bWaiting = true;
-        ui->pushButtonExposure->setEnabled(false);
         for (int i = 0; i < 2; ++i) {
             if ( ! pCamera->SetExposure(1 * 1000000) ) {
                 QMessageBox::critical(this, tr("Exposure failed"), tr("SetExposure failed."));
@@ -93,7 +95,7 @@ void MainWindow::on_pushButtonExposure_clicked()
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        ui->pushButtonExposure->setEnabled(true);
+        emit done();
     });
     exposureThread.swap(thread);
 }
@@ -134,4 +136,9 @@ void MainWindow::camera_imageReady(int nWidth, int nHeight, const std::vector<un
 void MainWindow::camera_aborted()
 {
     QMessageBox::warning(this, tr("Aborted"), tr("aborted."));
+}
+
+void MainWindow::exposure_done()
+{
+    ui->pushButtonExposure->setEnabled(true);
 }
